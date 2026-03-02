@@ -36,9 +36,11 @@ class TestPreprocessText:
 
     def test_lemmatizes_tokens(self):
         result = preprocess_text("running dogs are chasing cats")
-        # 'running' -> 'running' or 'run'; 'dogs' -> 'dog'; 'cats' -> 'cat'
-        assert "dog" in result or "dogs" not in result
-        assert "cat" in result or "cats" not in result
+        # 'dogs' -> 'dog'; 'cats' -> 'cat'
+        assert "dog" in result
+        assert "dogs" not in result
+        assert "cat" in result
+        assert "cats" not in result
 
     def test_empty_string(self):
         assert preprocess_text("") == ""
