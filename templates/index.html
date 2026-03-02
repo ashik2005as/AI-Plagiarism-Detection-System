@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+{% block title %}AI Plagiarism Detector – Check Documents{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1 class="hero-title">AI-Powered Plagiarism Detection</h1>
+  <p class="hero-subtitle">Paste text or upload files to check similarity using TF-IDF &amp; cosine similarity.</p>
+</div>
+
+<!-- Tab Navigation -->
+<div class="card">
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="text-input">📝 Text Input</button>
+    <button class="tab-btn" data-tab="file-upload">📁 File Upload</button>
+    <button class="tab-btn" data-tab="batch-upload">📂 Batch Compare</button>
+  </div>
+
+  <!-- Text Input Tab -->
+  <div class="tab-content active" id="text-input">
+    <form action="{{ url_for('check') }}" method="POST" id="textForm" enctype="multipart/form-data">
+      <div class="two-col">
+        <div class="input-group">
+          <label for="text1">Document 1</label>
+          <textarea id="text1" name="text1" rows="12" placeholder="Paste the first document here…" class="textarea"></textarea>
+          <span class="char-count" id="count1">0 characters</span>
+        </div>
+        <div class="input-group">
+          <label for="text2">Document 2</label>
+          <textarea id="text2" name="text2" rows="12" placeholder="Paste the second document here…" class="textarea"></textarea>
+          <span class="char-count" id="count2">0 characters</span>
+        </div>
+      </div>
+      <div class="form-footer">
+        <button type="submit" class="btn btn-primary" id="textSubmitBtn">
+          🔍 Check Plagiarism
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- File Upload Tab -->
+  <div class="tab-content" id="file-upload">
+    <form action="{{ url_for('check') }}" method="POST" enctype="multipart/form-data" id="fileForm">
+      <div class="two-col">
+        <div class="input-group">
+          <label>Document 1</label>
+          <div class="drop-zone" id="dropZone1" data-input="file1">
+            <span class="drop-icon">📄</span>
+            <p>Drag &amp; drop or <label for="file1" class="file-link">browse</label></p>
+            <p class="drop-hint">Supports .txt, .pdf, .docx</p>
+            <input type="file" id="file1" name="file1" accept=".txt,.pdf,.docx" class="file-input" />
+          </div>
+          <span class="file-name" id="fileName1"></span>
+        </div>
+        <div class="input-group">
+          <label>Document 2</label>
+          <div class="drop-zone" id="dropZone2" data-input="file2">
+            <span class="drop-icon">📄</span>
+            <p>Drag &amp; drop or <label for="file2" class="file-link">browse</label></p>
+            <p class="drop-hint">Supports .txt, .pdf, .docx</p>
+            <input type="file" id="file2" name="file2" accept=".txt,.pdf,.docx" class="file-input" />
+          </div>
+          <span class="file-name" id="fileName2"></span>
+        </div>
+      </div>
+      <div class="form-footer">
+        <button type="submit" class="btn btn-primary" id="fileSubmitBtn">
+          🔍 Check Plagiarism
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Batch Upload Tab -->
+  <div class="tab-content" id="batch-upload">
+    <form action="{{ url_for('check') }}" method="POST" enctype="multipart/form-data" id="batchForm">
+      <p class="hint-text">Upload 2 or more documents to get an N×N similarity matrix.</p>
+      <div class="drop-zone drop-zone-batch" id="dropZoneBatch" data-input="files[]">
+        <span class="drop-icon">📂</span>
+        <p>Drag &amp; drop files or <label for="batchFiles" class="file-link">browse</label></p>
+        <p class="drop-hint">Supports .txt, .pdf, .docx — minimum 2 files</p>
+        <input type="file" id="batchFiles" name="files[]" accept=".txt,.pdf,.docx"
+               class="file-input" multiple />
+      </div>
+      <ul class="file-list" id="batchFileList"></ul>
+      <div class="form-footer">
+        <button type="submit" class="btn btn-primary" id="batchSubmitBtn">
+          🔍 Compare All Documents
+        </button>
+      </div>
+    </form>
+  </div>
+</div><!-- /.card -->
+
+<!-- How it works section -->
+<div class="card how-it-works">
+  <h2>How It Works</h2>
+  <div class="steps">
+    <div class="step">
+      <span class="step-icon">📥</span>
+      <h3>1. Input</h3>
+      <p>Paste text directly or upload .txt, .pdf, or .docx files.</p>
+    </div>
+    <div class="step">
+      <span class="step-icon">⚙️</span>
+      <h3>2. Process</h3>
+      <p>Text is preprocessed: lowercased, stopwords removed, lemmatized.</p>
+    </div>
+    <div class="step">
+      <span class="step-icon">🤖</span>
+      <h3>3. Analyse</h3>
+      <p>TF-IDF vectors are computed and cosine similarity is calculated.</p>
+    </div>
+    <div class="step">
+      <span class="step-icon">📊</span>
+      <h3>4. Results</h3>
+      <p>Get a similarity score, plagiarism level, and sentence-level breakdown.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

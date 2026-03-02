@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+{% block title %}Results – PlagiarismAI{% endblock %}
+
+{% block content %}
+<div class="results-header">
+  <h1>Analysis Results</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">← New Check</a>
+</div>
+
+{% if result.mode == 'pair' %}
+<!-- ===== Pair comparison results ===== -->
+<div class="card summary-card">
+  <h2>Similarity Score</h2>
+  <div class="gauge-container">
+    <div class="gauge">
+      <div class="gauge-fill level-{{ result.plagiarism_level | lower }}"
+           style="width: {{ result.similarity_percentage }}%"></div>
+    </div>
+    <span class="gauge-label">{{ result.similarity_percentage }}%</span>
+  </div>
+
+  <div class="badge-row">
+    <span class="level-badge level-{{ result.plagiarism_level | lower }}">
+      {% if result.plagiarism_level == 'Low' %}✅{% elif result.plagiarism_level == 'Medium' %}⚠️{% else %}🚨{% endif %}
+      {{ result.plagiarism_level }} Similarity
+    </span>
+    <span class="timestamp">Analysed {{ result.timestamp[:19] | replace('T', ' ') }} UTC</span>
+  </div>
+
+  <div class="level-descriptions">
+    <div class="level-desc {% if result.plagiarism_level == 'Low' %}active{% endif %}">
+      <strong>✅ Low (0–30%)</strong> — Content appears original.
+    </div>
+    <div class="level-desc {% if result.plagiarism_level == 'Medium' %}active{% endif %}">
+      <strong>⚠️ Medium (30–70%)</strong> — Moderate similarity detected.
+    </div>
+    <div class="level-desc {% if result.plagiarism_level == 'High' %}active{% endif %}">
+      <strong>🚨 High (70–100%)</strong> — Likely plagiarised content.
+    </div>
+  </div>
+</div>
+
+<!-- Document previews -->
+<div class="card">
+  <h2>Document Previews</h2>
+  <div class="two-col preview-col">
+    <div>
+      <h3>Document 1</h3>
+      <pre class="doc-preview">{{ result.text1_preview }}{% if result.text1_preview | length >= 500 %}…{% endif %}</pre>
+    </div>
+    <div>
+      <h3>Document 2</h3>
+      <pre class="doc-preview">{{ result.text2_preview }}{% if result.text2_preview | length >= 500 %}…{% endif %}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- Sentence-level matches -->
+{% if result.sentence_matches %}
+<div class="card">
+  <h2>Top Sentence Matches</h2>
+  <div class="table-wrapper">
+    <table class="match-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Document 1 Sentence</th>
+          <th>Document 2 Sentence</th>
+          <th>Similarity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for match in result.sentence_matches %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ match.sentence1 }}</td>
+          <td>{{ match.sentence2 }}</td>
+          <td>
+            <span class="sim-badge sim-{{ 'high' if match.similarity >= 0.7 else ('medium' if match.similarity >= 0.3 else 'low') }}">
+              {{ "%.1f"|format(match.similarity * 100) }}%
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% elif result.mode == 'multi' %}
+<!-- ===== Multi-document matrix ===== -->
+<div class="card">
+  <h2>Similarity Matrix ({{ result.document_count }} documents)</h2>
+  <p class="hint-text">Values represent cosine similarity percentage between each pair of documents.</p>
+  <div class="table-wrapper">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th></th>
+          {% for name in result.document_names %}
+          <th title="{{ name }}">{{ name | truncate(20) }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in range(result.document_count) %}
+        <tr>
+          <th title="{{ result.document_names[i] }}">{{ result.document_names[i] | truncate(20) }}</th>
+          {% for j in range(result.document_count) %}
+          {% set val = result.similarity_matrix[i][j] %}
+          <td class="matrix-cell cell-{{ 'diag' if i == j else ('high' if val >= 70 else ('medium' if val >= 30 else 'low')) }}">
+            {{ val }}%
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Download report button -->
+<div class="card download-card">
+  <h2>Download Report</h2>
+  <p>Save a plain-text summary of these results.</p>
+  <button class="btn btn-primary" id="downloadBtn">⬇ Download Report</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Pass result data to JS for download report
+  const resultData = {{ result | tojson }};
+</script>
+{% endblock %}
