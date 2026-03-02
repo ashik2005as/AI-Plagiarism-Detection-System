@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+{% block title %}History – PlagiarismAI{% endblock %}
+
+{% block content %}
+<div class="results-header">
+  <h1>Comparison History</h1>
+  <a href="{{ url_for('index') }}" class="btn btn-secondary">← New Check</a>
+</div>
+
+<div class="card">
+  {% if entries %}
+  <div class="table-wrapper">
+    <table class="match-table">
+      <thead>
+        <tr>
+          <th>Date (UTC)</th>
+          <th>Mode</th>
+          <th>Similarity</th>
+          <th>Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td>{{ entry.timestamp[:19] | replace('T', ' ') }}</td>
+          <td>{{ 'Pair' if entry.mode == 'pair' else 'Batch (' ~ entry.document_count ~ ' docs)' }}</td>
+          <td>
+            {% if entry.mode == 'pair' %}
+              {{ entry.similarity_percentage }}%
+            {% else %}
+              —
+            {% endif %}
+          </td>
+          <td>
+            {% if entry.mode == 'pair' %}
+              <span class="level-badge level-{{ entry.plagiarism_level | lower }}">
+                {% if entry.plagiarism_level == 'Low' %}✅{% elif entry.plagiarism_level == 'Medium' %}⚠️{% else %}🚨{% endif %}
+                {{ entry.plagiarism_level }}
+              </span>
+            {% else %}
+              <span class="level-badge level-low">Batch</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="empty-state">No comparisons yet. <a href="{{ url_for('index') }}">Run your first check →</a></p>
+  {% endif %}
+</div>
+{% endblock %}
